@@ -1,0 +1,4 @@
+Kmax is a reimplementation  of Emacs that incorporates many techniques
+from AI.   It aims to borrow  the innumerable well  tested features of
+emacs, but also integrates a large repository of knowledge based tools
+into it, so that Kmax 

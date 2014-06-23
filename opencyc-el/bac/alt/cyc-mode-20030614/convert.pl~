@@ -1,0 +1,125 @@
+#!/usr/bin/perl
+
+printheaders();
+
+while (<>) {
+    $input .= $_;
+}
+
+foreach $segment (split /^ *$/m,$input ) {
+    $type = 0;
+    %argt = ();
+    %args = ();
+    %argn = ();
+    $returnvalue = "";
+    $comment = "";
+    if ($segment =~ /^function /m) {
+	$line = $segment;
+	$line =~ /function (\S+) : \(([^\)]*)\)(.*)/s;
+	$function = $1;
+	$args = $2;
+	$segment = $3;
+	$args =~ s/\n//g;
+	$args =~ s/\s+/ /g;
+
+	# deal with functions that end with a ?
+	$printedrepresentation=$function;
+	$function =~ s/\?/qm/;
+	$function =~ s/\+/plus/;
+
+	# parse args to determine which args are optional, etc.
+	$iter = 0;
+	$firstoarg = 0;
+	foreach $arg (split / /,$args) {
+	    ++$iter;
+	    if ($arg =~ /\&optional/) {
+		$firstoarg = $iter;
+	    } else {
+		$temp = $iter;
+		
+		$args{$iter - ($firstoarg > 0)} = $arg;
+		$argn{$arg} = $iter - ($firstoarg > 0);
+	    }
+	}
+	foreach $line (split /\n/, $segment) {
+	    if ($line =~ /^(.*) must satisfy (.*)\.\s*$/) {
+		++$type;
+		$arg = $1;
+		$ptype = $2;
+		$ptypeprintedrepresentation = $ptype;
+		$ptypeprintedrepresentation =~ s/\?/qm/g;
+		$ptypeprintedrepresentation =~ s/\+/plus/g;
+		$ptypeprintedrepresentation =~ s/[\(\)]//g;
+		$ptypeprintedrepresentation =~ s/\s/-/g;
+		$argt{$type} = $ptypeprintedrepresentation;
+		$argpt{$type} = $ptype;
+	    }
+	    elsif ($line =~ /^Single value returned (satisfies|is a list of elements satisfying) (\S+)\.\s*/) {
+		$returnvalue = $2;
+	    }
+	    else {
+		$line =~ s/\s+$/ /;
+		$comment .= $line;
+	    }
+	}
+	# say its a function
+	print "(find-or-create-constant \"SubLFunction-$function\")\n";
+	print "(cyc-assert \'(#\$isa #\$SubLFunction-$function #\$SubLFunction) #\$SubLMicrotheoryMt)\n";
+	    print "(cyc-assert \'(#\$PrintedRepresentation #\$SubLFunction-$function \"$printedrepresentation\") #\$SubLMicrotheoryMt)\n";
+	    if ($returnvalue !~ /^$/) {
+		# say its a type
+		print "(find-or-create-constant \"SubLFunction-$returnvalue\")\n";
+		print "(cyc-assert \'(#\$isa #\$SubLFunction-$returnvalue #\$SubLTypePFunction) #\$SubLMicrotheoryMt)\n";
+		    print "(cyc-assert \'(#\$SubLFunctionReturnTypePFunction #\$SubLFunction-$function #\$SubLFunction-$returnvalue) #\$SubLMicrotheoryMt)\n";
+		} else {
+#		    print "(cyc-assert \'(#\$SubLFunctionReturnTypePFunction #\$SubLFunctionSymbol-$function #\$SubLFunction-NIL) #\$SubLMicrotheoryMt)\n";
+		}
+	if ($comment !~ /^$/) {
+	    print "(cyc-assert '(#\$comment #\$SubLFunction-$function \"$comment\") #\$SubLMicrotheoryMt)\n";
+	    }
+	foreach $key (keys %argt) {
+	    print "(find-or-create-constant \"SubLFunction-$argt{$key}\")\n";
+	    print "(cyc-assert \'(#\$isa #\$SubLFunction-$argt{$key} #\$SubLTypePFunction) #\$SubLMicrotheoryMt)\n";
+		print "(cyc-assert \'(#\$SubLFunctionArgumentTypePFunction #\$SubLFunction-$function $key #\$SubLFunction-$argt{$key}) #\$SubLMicrotheoryMt)\n";
+	    print "(cyc-assert \'(#\$PrintedRepresentation #\$SubLFunction-$argt{$key} \"$argpt{$key}\") #\$SubLMicrotheoryMt)\n";
+		if (($key >= $firstoarg) && $firstoarg) {
+		    print "(cyc-assert \'(#\$SubLFunctionOptionalArgument #\$SubLFunction-$function $key) #\$SubLMicrotheoryMt)\n";
+			
+		    }
+	}
+	print "\n";
+    }
+}
+
+sub printheaders () {
+    print "(find-or-create-constant \"SubLMicrotheoryMt\")\n";
+    print "(cyc-assert '(#\$isa #\$SubLMicrotheoryMt #\$Microtheory) #\$BaseKB)\n";
+	print "(cyc-assert '(#\$genlMt #\$SubLMicrotheoryMt #\$BaseKB) #\$BaseKB)\n";
+	print "(find-or-create-constant \"SubLFunction\")\n";
+    print "(cyc-assert '(#\$isa #\$SubLFunction #\$Collection) #\$SubLMicrotheoryMt)\n";
+	print "(find-or-create-constant \"SubLTypePFunction\")\n";
+    print "(cyc-assert '(#\$isa #\$SubLTypePFunction #\$Collection) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$genls  #\$SubLTypePFunction #\$SubLFunction) #\$SubLMicrotheoryMt)\n";
+	print "(find-or-create-constant \"PrintedRepresentation\")\n";
+    print "(cyc-assert '(#\$isa #\$PrintedRepresentation #\$BinaryPredicate) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$arity #\$PrintedRepresentation 2) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$PrintedRepresentation 1 #\$SubLFunction) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$PrintedRepresentation 2 #\$SubLString) #\$SubLMicrotheoryMt)\n";
+	print "(find-or-create-constant \"SubLFunctionReturnTypePFunction\")\n";
+    print "(cyc-assert '(#\$isa #\$SubLFunctionReturnTypePFunction #\$BinaryPredicate) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$arity #\$SubLFunctionReturnTypePFunction 2) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$SubLFunctionReturnTypePFunction 1 #\$SubLFunction) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$SubLFunctionReturnTypePFunction 2 #\$SubLTypePFunction) #\$SubLMicrotheoryMt)\n";
+	print "(find-or-create-constant \"SubLFunctionArgumentTypePFunction\")\n";
+    print "(cyc-assert '(#\$isa #\$SubLFunctionArgumentTypePFunction #\$TernaryPredicate) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$arity #\$SubLFunctionArgumentTypePFunction 3) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$SubLFunctionArgumentTypePFunction 1 #\$SubLFunction) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$SubLFunctionArgumentTypePFunction 2 #\$SubLPositiveInteger) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$SubLFunctionArgumentTypePFunction 3 #\$SubLTypePFunction) #\$SubLMicrotheoryMt)\n";
+	print "(find-or-create-constant \"SubLFunctionOptionalArgument\")\n";
+    print "(cyc-assert '(#\$isa #\$SubLFunctionOptionalArgument #\$BinaryPredicate) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$arity #\$SubLFunctionOptionalArgument 2) #\$SubLMicrotheoryMt)\n";    
+	print "(cyc-assert '(#\$argIsa #\$SubLFunctionOptionalArgument 1 #\$SubLFunction) #\$SubLMicrotheoryMt)\n";
+	print "(cyc-assert '(#\$argIsa #\$SubLFunctionOptionalArgument 2 #\$SubLPositiveInteger) #\$SubLMicrotheoryMt)\n";
+	print "\n";
+}

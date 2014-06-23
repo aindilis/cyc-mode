@@ -1,0 +1,50 @@
+;; cyc-mode-Mt
+
+;; goal-Mt
+
+;; create goal microtheory
+(cdolist (*new* '("goal" "goal-Mt" "accomplished" "subgoal"))
+	 (find-or-create-constant *new*))
+(cyc-assert '(#$isa #$goal-Mt #$Microtheory) #$BaseKB)
+
+;; create goal system 
+(cdolist (*new* '(
+		  (#$isa #$goal #$Collection)
+
+		  (#$isa #$accomplished #$FixedArityRelation)
+		  (#$isa #$accomplished #$Predicate)
+		  (#$arity #$accomplished 1)
+		  (#$arg1Isa #$accomplished #$goal)
+
+		  (#$isa #$subgoal #$FixedArityRelation)
+		  (#$isa #$subgoal #$Predicate)
+		  (#$arity #$subgoal 2)
+		  (#$arg1Isa #$subgoal #$goal)
+		  (#$arg2Isa #$subgoal #$goal)
+
+		  (#$equiv (#$accomplished ?GOAL) 
+			   (#$implies
+			    (#$subgoal ?GOAL ?SUBGOAL)
+			    (#$accomplished ?SUBGOAL)))
+		  ))
+	 (cyc-assert *new* #$goal-Mt))
+
+;; create goal template system
+(cdolist (*new* '("goal-template"))
+	 (find-or-create-constant *new*))
+(cdolist (*new* '(
+		  (#$isa #$goal-template #$FixedArityRelation)
+		  (#$isa #$goal-template #$Predicate)
+		  (#$arity #$goal-template 2)
+		  (#$arg1Isa #$goal-template #$goal)
+		  (#$arg2Isa #$goal-template #$goal)
+		  (#$implies (#$goal-template ?GOAL-TEMPLATE ?GOAL)
+			     (#$implies (#$subgoal ?GOAL-TEMPLATE ?SUBGOAL-TEMPLATE)
+					(#$thereExistExactly
+					 1 ?SUBGOAL
+					 (#$and
+					  (#$isa ?SUBGOAL #$goal)
+					  (#$goal-template ?SUBGOAL-TEMPLATE ?SUBGOAL)
+					  (#$subgoal ?GOAL ?SUBGOAL)))))
+		  ))
+	 (cyc-assert *new* #$goal-Mt))

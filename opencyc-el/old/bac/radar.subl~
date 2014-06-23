@@ -1,0 +1,160 @@
+;; Define constants
+
+(find-or-create-constant "Project")
+(isa Project Collection)
+
+(find-or-create-constant "SoftwareSystem")
+(isa SoftwareSystem Collection)
+
+(find-or-create-constant "ResearchGroup")
+(isa SoftwareSystem Collection)
+
+(hasSpecialDownloadRequirements)
+
+;; this is a draft of the RADAR system semantics in SubL
+(isa DoughertysResearchGroup ResearchGroup)
+(isa ProjectRadar Project)
+(isa ProjectOpenCyc Project)
+(isa OpenCycSoftware SoftwareSystem)
+(projectDeliverable ProjectOpenCyc OpenCycSoftware)
+(hasVersion OpenCycSoftware "0.7.0")
+(hasDebianPackage OpenCycSoftware "0.7.0" "opencyc-0.7.0")
+(hasSoftware ProjectOpenCyc OpenCycSoftware)
+
+;; Different types of Projects
+(genls LocalProject Project)
+(genls UpstreamProject Project)
+
+;; Different types of Packages
+(isa CorruptPackage PackageStatus)
+(isa CompletedPackage PackageStatus)
+(isa IncompletePackage PackageStatus)
+(exclusivePredicates CompletedPackage IncompletePackage)
+
+(isa DateReleased PackageAttributes)
+(isa DateCompleted PackageAttributes)
+
+(hasAquired GroupFRDCSA )
+
+;; PROJECTS				
+
+;; Axioms for Projects  
+(implies 
+ (and
+  (isa UpstreamProject ?PROJECT)
+  (projectDeliverable ?PROJECT ?SOFTWARE))
+ (isa ?SOFTWARE UpstreamSoftware))
+
+(implies
+ (and
+  (subProject ?PROJ1 ?PROJ2)
+  (subProject ?PROJ2 ?PROJ3))
+ (subProject ?PROJ1 ?PROJ3))
+
+(implies
+ (immediateSubProject ?PROJ1 ?PROJ2)
+ (subProject ?PROJ1 ?PROJ2))
+
+(find-or-create-constant "LocalProject")
+(find-or-create-constant "UpstreamProject")
+(genls LocalProject Project)
+(genls UpstreamProject Project)
+
+;; Sample Project Associations
+
+(isa ProjectRadar LocalProject)
+(isa ProjectOpenCyc UpstreamProject)
+
+(isa ProjectMyFRDCSA LocalProject)
+(subProject ProjectRadar ProjectMyFRDCSA)
+
+(debianPackageName )
+
+(genls UpstreamProjectSoftware ProjectSoftware)
+(genls LocalProjectSoftware ProjectSoftware)
+
+(upstreamSoftwareURL OpenCycSoftware "0.7.0" "http://")
+(upstreamProjectURL ProjectOpenCyc "http://www.opencyc.org")
+(upstreamProjectURL ProjectOpenCyc "http://www.opencyc.org")
+
+(hasAuthor OpenCycSoftware StephenGiles)
+(hasEmail StephenGiles "sgile@cyc.com")
+
+
+;; This section is to clarify the usage of certain concepts such as
+;; package dependency.
+
+(isa FRDCSA Database)
+;; (implementation-of FRDCSA)
+;; (installation-of (implementation-of FRDCSA))
+;; (product-of (implementation-of FRDCSA))
+;; (package-for (product-of (implementation-of FRDCSA)))
+;; (package-of (files-for (implementation-of FRDCSA)))
+;; (project-website-for (implementation-of FRDCSA))
+
+(genls UpstreamProject)
+(url ProjectRadar )
+(isa Project X)
+
+(subProject  )
+
+(arg1isa )
+
+;; Tag Set Mappings for Annotation
+
+(isa NAMEX ResearchGroup)
+(isa NAMEX SoftwareSystem)
+(isa NAMEX SoftwareVersion)
+(isa NAMEX SoftwareAuthor)
+(isa NAMEX ResearchGroupURL)
+(isa NAMEX SoftwareSystemURL)
+(isa NAMEX SoftwareVersionURL)
+
+;; RADAR architectural components 
+
+(isa DerivativeSoftware Software)
+(transitivePredicate DerivativeSoftware)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; RADAR architecture
+
+(isa CVS AquisitionProtocol)
+(isa AFS AquisitionProtocol)
+(isa FTP AquisitionProtocol)
+(isa HTTP AquisitionProtocol)
+(isa LOCAL AquisitionProtocol)
+
+(isa NaturalLanguage SearchCriteriaModality)
+(isa Similarity SearchCriteriaModality)
+(isa Keyword SearchCriteriaModality)
+(isa Capability SearchCriteriaModality)
+(isa TargetAxioms SearchCriteriaModality)
+
+;; TargetRecognitionMethod this is a way of finding a category of
+;; items which may not be uniquely expressed, so it must be
+;; interactively clarified
+
+(isa Name TargetRecognitionMethod)
+
+;; TargetRecognitionMethod this is a way of finding a unique item,
+;; which may not be uniquely expressed, so it must be interactively
+;; clarified
+
+(isa Spidering SearchStrategy)
+(subStrategy DocumentClassification Spidering)
+(isa InformationExtraction SearchStrategy)
+(isa InformationRetrieval SearchStrategy)
+(isa ExhaustiveFilesystemAnalysis SearchStrategy)
+(isa LocationProbing SearchStrategy)
+
+;; need to document the functionality of analyzing files,filenames,and
+;; directories against previous experience
+
+(isa RecordSuccessfulAndFailedRetrievalStrategies MetaSearchStrategy)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(singularTarget )
+(pluralTarget )

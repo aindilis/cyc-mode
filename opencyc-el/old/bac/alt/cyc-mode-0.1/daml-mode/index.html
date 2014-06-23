@@ -1,0 +1,151 @@
+
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN" >
+
+<html>
+  <head>
+    <title>DAML Emacs Mode Installation Instructions </title>
+    </head>
+
+<body>
+
+<center><font size="+3"><ul>A DAML Mode for XEmacs and GNU Emacs</ul></font></center>
+
+This is the beta release of the DAML mode for the Emacs editor. 
+For more information about the DAML language
+and the semantic web see 
+<a href="http://www.daml.org">The DAML Program Web Site</a>.<p>
+
+Anyone who has tried to write DAML ontologies in a text editor will
+recognize that it requires a lot of typing, and that reading and moving
+around in such files can be tedious. This is (hopefully) a step in the direction of
+addressing those problems.  DAML-EMACS is a "mode" for use with the EMACS
+text editor, not unlike the modes for C++, Java, LateX, LISP and HTML... that
+existed previously. It provides automatic fontification to make the code easier to read, 
+commands to insert new forms to be filled out, and keyboard commands for moving about the file 
+in logical DAML/RDF or XML units.
+<p>
+
+<hr>
+<center><font size="+2">Software Requirements</font></center><p>
+This current release is was developed for XEmacs version 21.1, but is being adapted to 
+also work with GNU Emacs (versions from 19.28 up). It has been tested with GNU version 20, 
+and works acceptably there, as long as you have a recent version of the W3 package for Emacs. 
+<p>
+We recommend using XEmacs with DAML mode over GNU Emacs. It 
+is faster and the fonts are much better. The W3 mode version mentioned above works
+with XEmacs as well, although the version available 
+from <a href="http://www.xemacs.org">http://www.xemacs.org</a> is also fine. 
+<p>
+If you need/want to install XEmacs on a windows platform, 
+there are two installation sets for version 21.4.3 available at
+<a href="http://www.xemacs.org">http://www.xemacs.org</a>, 
+and they are also downloadable from here:
+
+<ul>
+<li> A version for use in conjunction with Cygwin (a unix-like shell that runs in Windows): 
+<a href="http://openmap.bbn.com/~burstein/daml-emacs/xemacs-i686-pc-cygwin-21.4.3.tar.gz">
+Download non-CYGWIN XEmacs.</a>.</li>
+<li>
+A version for use without Cygwin:
+<a href="http://openmap.bbn.com/~burstein/daml-emacs/xemacs-i586-pc-win32-21.4.3.tar.gz">Download CYGWIN XEmacs.</a>
+</ul>
+<p>
+When you install either of these, and try to run it for the first time, 
+it will try to create an init file based on your prior GNU ~/.emacs
+file if one exits. You can avoid some confusion here by first creating
+the ~/.xemacs/init.el file with nothing in it, and then moving things 
+over from your .emacs initialization file gradually. 
+<p>
+DAML mode the emacs W3 package to access web pages.  The W3 mode 
+version 4.0 installation tar from the University of Indiana, but you can also just
+<a href="http://openmap.bbn.com/~burstein/daml-emacs/w3-4.tar.gz">Download W3 mode</a> from here.<p>
+After unpacking it, see the file INSTALL for a installation on UNIX or 
+the README.NT for windows installation.
+<p>
+<hr>
+<p>
+<center><font size="+2">Installing DAML Mode</font></center><p>
+The beta release source code for DAML mode is downloadable from this tar file: 
+<a href="http://openmap.bbn.com/~burstein/daml-emacs/daml-emacs-beta.tar">daml-emacs-beta.tar</a> 
+<p>
+
+
+<ol>
+<li>
+Unpack the files into a directory named daml/ somewhere, such as
+~/emacs/daml</li>
+<li> Edit your ~/.emacs (GNU or UNIX XEmacs) or ~/.xemacs/init.el
+(windows XEmacs) initialization file so that the load-path includes
+the ~/emacs/daml/ (or wherever you put them) directory, and the directory containing the w3 package
+(for xemacs this is already there)..
+</li>
+<li> (optional) Compile the .el files in this directory. This seems to make the 
+most difference for GNU emacs. To do it, in emacs do the following commands:
+<ol>
+<li>M-x cd  (at the prompt enter the code directory, e.g. "~/emacs/daml")</li>
+<li>M-x load-file  (at the prompt enter "docomp")</li>
+</ol>
+</li>
+</ol>
+
+To fix the load path (2 above), add the following two lines to the initialization file:
+<p>
+<code>
+(setq <tab ID="tab1">load-path <br>
+&#09;<tab TO="tab1">(append <tab ID="tab2">'(<tab ID="tab3">"<i>&lt;path to the emacs code directory&gt;</i>/daml/"
+"<i>&lt;path to w3 directory&gt;</i>") 
+<br><tab to="tab2">load-path))<br>
+(load "damlite")<br>
+</code>
+<p>
+The w3 path is needed only if installing it yourself for use with GNU Emacs.
+<hr>
+<center><font size="+2">Using DAML Mode</font></center><p>
+See the README with the distribution for more details. <p>
+Once daml mode is installed, just open or create a file with extension .daml or edit any file
+and do<br> <center><code>M-x DAML-MODE</code></center><br>
+If you open a non-existent file, like "newfile.daml", some default header information
+plus the rdf:RDF and /rdf:RDF tags are inserted. See 'daml-helper-new-buffer-template' in
+the file damlite.el to change what this looks like.
+<p>
+To get full use DAML-MODE, you will have to ascertain that the W3 package is
+installed on your machine, and that the load path makes it accessible. If it is not installed, 
+you will not be able to use M-. to find DAML definitions on the web.
+To see if it is installed do<br>
+<center> <code>M-x locate-library (ENTER) w3 (ENTER)</code></center><p>
+
+If already installed, you will probably find 
+it as a subdirectory under the XEmacs installation directory called<br>
+<code> ...mumble.../lisp/w3/</code>
+<p> If you can't find it, you will have to install it.
+A copy of the tar'd (and gzipped) source for this package is available from 
+<a href="http://www.xemacs.org/Download/optLibs.html">http://www.xemacs.org/Download/optLibs.html</a> or you can just
+<a href="http://openmap.bbn.com/~burstein/daml-emacs/w3-1.20-pkg.tar.gz">Download W3 Mode from here</a>.
+<p>
+
+<hr>
+<center><font size="+2">Patches</font></center>
+I will occasionally update the source code, as bugs are discovered. I will keep 
+copies of each of the .el files in the  <a href="http://openmap.bbn.com/~burstein/daml-emacs/patches">patch directory.</a> 
+as they change so that individual files can be 
+retrieved instead of a full distribution. If you downloaded a pre-beta version I recommend you 
+just get the tar file. 
+
+Here are recent updates:
+
+<ul>
+<li> 2-18-02 - (replaced tar file)  Made motion commands save mark. Added many new insert DAML form commands, moved all inserts to a separate menu.</li>
+</ul>
+
+<hr> 
+<p><b>Questions? Comments? Bugs?</b><p>
+Email to <a href="mailto:burstein@bbn.com">burstein@bbn.com</a>.<br>
+<p>
+
+Mark Burstein<br>
+BBN Technologies<br>
+10 Moulton St.<br>
+Cambridge, MA 02138<br>
+Tel: 617-873-3861<br>
+</body>
+</html>

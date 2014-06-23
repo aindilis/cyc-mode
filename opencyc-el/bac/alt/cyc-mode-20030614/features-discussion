@@ -1,0 +1,10 @@
+(Here are ideas for Cyc-mode features
+	(Keep all the kinds of interaction classified within Cyc)
+	(Keep everything modelled within Cyc, but then translated
+	      into other code.)
+	(Do lots of exploring with it, in fact, keep track of which
+	    constants I have studied.)
+	(create a buffer for communication between cyc and emacs)
+	(put everything in cvs)
+	(before much else, should have the capability to generate
+		full subl commands))

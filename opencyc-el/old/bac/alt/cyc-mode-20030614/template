@@ -1,0 +1,7 @@
+(create-constant "SubL-constant-ASDFGH")
+(cyc-assert '(#$isa #$SubL-constant-ASDFGH #$SubL-function))
+(cyc-assert '(#$isa #$SubL-constant-string "ASDFGH"))
+(cyc-assert '(#$returns #$SubL-constant-ASDFGH #$SubL-constant-BOOLEANP) #$SubLMicrotheory)
+(cyc-assert '(#$arg1isa #$SubL-constant-ASDFGH #$SubL-constant-ASDFGH) #$SubLMicrotheory)
+(cyc-assert '(#$arg2isa #$SubL-constant-ASDFGH #$SubL-constant-ASDFGH) #$SubLMicrotheory)
+(cyc-assert '(#$arg3isa #$SubL-constant-ASDFGH #$SubL-constant-ASDFGH) #$SubLMicrotheory)

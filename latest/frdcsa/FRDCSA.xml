@@ -1,0 +1,17 @@
+<system>
+  <title>OpenCyc-el</title>
+  <short-description>
+    OpenCyc Emacs major mode
+  </short-description>
+  <medium-description>
+    A specialized  Emacs major mode  for CycL and SubL,  the languages
+    for the OpenCyc common sense knowledge base. Aims to create a deep
+    channel between Emacs and OpenCyc.
+  </medium-description>
+  <long-description>
+  </long-description>
+  <links>
+    <link>http://cyc-mode.sf.net/</link>
+  </links>
+  <depends>libnet-telnet-perl</depends>
+</system>

@@ -1,0 +1,12 @@
+Kmax is derived via analogy to Emacs, and incorporates many techniques
+from AI.  It  aims to borrow the innumerable,  well tested features of
+Emacs, but also integrates a large repository of knowledge based tools
+into  it, so  that  Kmax  functions as  an  intelligent agent,  making
+decisions and even reasoning about the psychology of the user.
+
+Binding of keystrokes to functions.
+
+Large, well organized library of functions.
+
+Automatic optimization of the key layout, based on methods from coding
+theory.

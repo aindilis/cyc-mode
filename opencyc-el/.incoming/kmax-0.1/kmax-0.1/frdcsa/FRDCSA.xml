@@ -1,0 +1,17 @@
+<system>
+  <title>
+    <!-- What it is called. Short. Easy to remember. Relevant. -->
+  </title>
+  <acronym-expansion>
+    <!-- If it is an acronym, what does it expand to? -->
+  </acronym-expansion>
+  <pi>
+    <!-- Who is Principle Investigator? -->
+  </pi>
+  <short-description>
+  </short-description>
+  <medium-description>
+  </medium-description>
+  <long-description>
+  </long-description>
+</system>

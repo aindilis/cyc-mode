@@ -1,0 +1,277 @@
+XEmacs/Gnu Emacs DAML Editing Mode
+
+This is an alpha version of a simple major mode for devloping files
+containing DAML+OIL/RDF descriptions.  It was developed by Mark Burstein at
+BBN Technologies, with help from Richard Shapiro and Ken Anderson. 
+
+Installation:
+Unpack the files into a directory named daml/ somewhere emacs can see it
+and add the following two lines to your 
+.emacs file (GNU and some UNIX XEmacs) or .xemacs/init.el file (XEmacs on windows)
+
+(setq load-path (cons "<path to the directory>/daml/" load-path)
+(load "damlite")
+
+Then you can either edit a file with extension .daml or create one. 
+
+If you create one, some initial text is inserted. See damlite.el to change
+what this looks like.
+
+To use it with XEmacs, you will have to ascertain that the w3 package is
+installed on your machine. it tends to live as a subdirectory under the xemacs
+installation called .../lisp/w3/  
+
+This w3 directory will also have to be on the load path, but this should be
+automatic. 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+DAML Mode provides the following capabilities:
+================================================================
+Colorized highlighting of DAML+OIL keywords, term definitions and references. 
+================================================================
+Defined in: damlite.el
+-----------------------
+Higlights primarily class and property names and other DAML+OIL and RDF/RDF-S keywords. 
+AVOIDS highlighting the 'source:' prefixes to improve visibility.
+
+NOTE: This highlighting is purely based on syntactic cues, and does not
+utilize reasoning or information about known DAML ontology definitions.
+
+Class IDs - Blue (also Bold - Xemacs only)
+
+Property IDs - Darkviolet (also Bold - Xemacs only)
+
+Comments - Red (Both <!-- --> and <rdfs:comment> types. We were unable to make the text 
+           in multi-line <rdfs:comment>s red for some reason, but the tags are red. )
+
+Entity substitutions - OrangeRed
+
+DAML and RDF tag keywords - Bold Black
+    Keywords include such things as  daml:Class, rdfs:subClassOf, daml:Restriction ...
+    Also includes just the / in "</" and "/>" to emphasize the endings of tags. 
+
+Other daml keywords - Brown (peru) (like collectionType, cardinality)
+
+Other syntactically unresolved strings (usually resource references) are Green
+(includes literal values, resources that are the range of properties)
+
+In GNU Emacs, I have tried to use grey to downplay things to enhance contrast with daml keywords 
+(that are bolded in Xemacs).
+
+
+================================================================
+Cursor Motion Commands:
+================================================================
+Defined in: daml-motion.el
+-----------------------
+To avoid the problems inherent in using a full XML/PSGML parser (the original approach attempted)
+such as not being able to use cursor motion commands until the file was already syntactically 
+correct, heuristics were used to determine the position from local context, and movement is based on 
+having an "essentially syntactically correct" file in the vicinity of the cursor. That is, 
+syntactic cues like <, </, >, />, <!--, -->, <rdfs:comment>, </rdfs:comment> are used to guide the 
+motion. 
+================================================================
+c-m-b  DAML Backward Tag: Move to before the current (if inside) or previous begin tag.
+c-m-f  DAML Forward Tag: Move to after the current (if inside) or next end tag. 
+c-m-a  DAML Up Tag: Move to before the ENCLOSING begin tag. (up one embedding level)
+c-m-e  DAML Up Tag End: Move to after the ENCLOSING end tag (up one embedding level)
+c-m-i  DAML Inside Tag: Move to after the next (non-self-terminating) begin tag within the current
+       tag body. 
+
+To move between definitions (Definitions are defined here as begin tags that start at the left margin)
+c-m-u  DAML-backward-definition: Move to the beginning of the current definition, or the previous one
+       if already between definitions. 
+c-m-d  DAML-forward-definition: Move to the beginning of the next definition, if any.
+
+
+
+The first two commands (forward, back)work within a single level of tag embedding, so, for example, 
+if the cursor is at (^7) in the expression
+
+(^1)<daml:Class rdf:ID="BuyEffectType">
+  (^2)<daml:oneOf rdf:parseType="daml:collection">(^3)
+         (^4)<BuyEffectType rdf:ID ="OrderShipped"/>(^5)
+         (^6)<BuyEffectType rdf:ID ="Failure">
+	 	(^7)<rdfs:comment> Inside comments is ignored</rdfs:comment>
+	     </BuyEffectType>(^8)
+     </daml:oneOf>(^9)
+</daml:Class>(^10)
+
+Then the command daml-forward-tag (c-m-f) won't do anything, but
+daml-up-tag-end (c-m-e) will move to after the </daml:oneOf> (^9). If the
+cursor is at (^6) then c-m-f moves the cursor to (^8), and c-m-e still
+moves the cursor to (^9). If the cursor is at (^2) then c-m-f moves over the whole oneOf tag
+to (^9) and c-m-e moves to (^10), since that is the next higher tag level.
+
+Similarly, if at (^7) or inside the preceding tag, then c-m-b
+(daml-backward tag) moves to (^6), while daml-up-tag (c-m-a) moves to
+(^2), and c-m-u (daml-backward-definition moves to (^1).  From (^3) or
+(^4), daml-backward tag does nothing.
+
+daml-inside-tag (c-m-i) moves from outside a begin-end pair, to just inside it. So, for example,
+from (^2) to (^3). It also searches forward, within a level to find an non-empty begin tag,  
+so that from (^4) to c-m-i goes to  (^7).
+
+
+================================================================
+TAB and Indenting Commands
+================================================================
+Defined in: daml-motion.el
+-----------------------
+
+<TAB> runs the command daml-indent-line, which uses the motion heuristics to determine
+how much to indent the current line relative to the previous begin tag. 
+The default is to indent each successive level by two spaces, which is controled by the 
+emacs variable 'daml-indent-increment'. 
+
+The command daml-indent-expression (c-m-q) indents each line of the expression that begins
+after the cursor (that is, from the next <tag> to its </tag>). 
+
+<RET> will do a newline and also try to indent the next line for you. 
+
+
+================================================================
+Finding DAML/RDF URI's (meta-dot)
+================================================================
+Defined in: daml-w3.el
+-----------------------
+This currently works only in XEmacs, as it depends on the XEmacs W3 package
+-----------------------
+
+The function daml-view-rdf-id is invoked by typing m-. (meta and
+period together) This function finds the file containing the definition of
+the url or tagname under the cursor and shows it in a buffer. This
+function retrieves files over the web if necessary, such as to view the
+definition of daml:Class from http://www.daml.org/2001/03/daml+oil.daml.
+
+In order to facilitate DAML development, it also first checks to see if the definition can 
+be found in the local directory of the current buffer. 
+
+If the url is in the current buffer, it just moves to the begining of that definition.
+
+If the url is in a different file, then the following rules are used:
+
+(1)  If a buffer is loaded that is associated with the URI (that is, the filename part of the URI),
+  then it switches to that buffer and finds the definition in that buffer.
+  For example, when looking at a buffer containing daml+oil.daml, 
+
+
+(2)  If there is a file in the same directory as the current buffer that has the same name as
+  the (non-directory part of the) file name for the URI, then
+  asks if it should loads that file into a buffer. For example, if there is a copy 
+  of Process.daml in the local directory, there is an XML entity definition at the top of
+  the file as follows:
+
+  <!ENTITY process "http://www.daml.org/services/daml-s/2001/10/Process.daml">
+
+  and you meta-dot on 
+ rdf:resource="&process;#input"
+
+  you will be prompted with with:
+ URL (in ./Process.daml): http://www.daml.org/services/daml-s/2001/10/Process.daml#input
+
+  Hitting return will load the local file version of Process.daml and
+  search for the definition of 'input' in that buffer.
+
+  This behavior is intended to make it easier to keep local copies of DAML files, while they
+  are under development, and intermix them with remote ontologies.
+
+(3) If the file is not found in the local directory, such as daml:Class, 
+then you will be prompted by
+URL: http://www.daml.org/2001/03/daml+oil.daml#Class
+
+and hitting return will load that URL into a buffer by retrieving it over the web. 
+
+----------------
+You may also change the default URL specified in the prompt by backspacing over it 
+(or just typing ' at the prompt) and then typing in
+a different one. Abbreviations defined in the current file can be used here, so either
+process:input or &process;#input would specify the URL in the example above, 
+if those shortcuts were defined in the current buffer. URI's without either a name: or 
+&name; prefix will be assumed to be in the current buffer and only located there. 
+
+Some typed in examples:
+
+(Let's assume we are looking at the buffer Congo.daml, which begins with
+ <!DOCTYPE uridef[
+  ..
+  <!ENTITY process "http://www.daml.org/services/daml-s/2001/10/Process.daml">
+  <!ENTITY THIS    "http://www.daml.org/services/daml-s/2001/10/Congo.daml"> 
+  ...
+  ]>
+ <rdf:RDF
+  xmlns:rdf =     "&rdf;#"
+  xmlns:rdfs =    "&rdfs;#"
+  xmlns:xsd =     "&xsd;#"
+  xmlns:daml =    "&daml;#"
+  ...
+  xmlns:process = "&process;#"
+  ...
+ >
+)
+
+Then typing meta dot and then either rubbing out the default shown or typing ' and then
+
+
+CreditCardType      - finds the definition with ID="CreditCardType" in the current buffer
+&THIS;#CreditCardType - does the same (due to the entity definition)
+
+process:input  - finds the definition of input in the a local file Process.daml or 
+                 at the URI specified by the entity definition, if no local file found.
+		 because process: expands to &process;# using the xmlns definition, and
+                 to http://www.daml.org/services/daml-s/2001/10/Process.daml#input using the 
+                 entity definition
+&process;#input - same, based directly on the entity definition
+
+http://www.daml.org/services/daml-s/2001/10/Process.daml#input 
+               - acts the same, without any substitutions
+
+IF A LOCAL FILE IS FOUND, BUT YOU WANT TO SKIP IT AND GO DIRECTLY TO THE WEB, TYPE @ AT THE END
+OF THE URI YOU SPECIFY. 
+
+================================================================
+Meta-comma (m-,) - daml-find-def-in-buffer -  Finds URI definition in the current buffer. 
+Prompts for an ID. 
+
+
+^x-p  - go to previous remembered position.  
+                                  Switch back to where you were before the last 
+                                  find definition or remember-position
+^x-.  - remember position         
+                                  Remember this location so you can switch back to it.
+
+
+
+
+
+================================================================
+Inserting Definitions
+================================================================
+These commands insert empty (but balanced) tag forms for new definitions or descriptions.
+They prompt for an ID first.
+C-c c Insert a new Class
+C-c p Insert a new Property
+C-c d Insert a new Description ID=
+C-c a Insert a new Description about=
+C-c / Insert an end tag corresponding to nearest previous open tag.
+
+
+================================================================
+Summary Mode
+================================================================
+The command C-c s splits the window and puts a smaller window at the top containing 
+a list of the forms in the daml file. Click on a line and hit space to jump to that form
+in the daml buffer. The letters 'n' and 'p' move backward and forward in this list, 
+showing the corresponding definition as you move. 
+
+After changing the daml file, C-c s will refresh the smaller window's list. 
+Typing 's' in the daml summary window does the same thing. 
+
+
+
+=======================================================================
+Comments, problems, and suggestions to Mark Burstein (burstein@bbn.com). 
+
+All code provided "as is" and may be freely distributed.  
+(c) 2001,2  by BBN Technologies
+This file last edited: 1/7/2002 by Mark Burstein
