@@ -1,5 +1,7 @@
-() ();;; cyc-mode.el
-(setq inferior-lisp-program "/usr/bin/opencyc")
+;;; cyc-mode.el
+
+;; (setq inferior-lisp-program "/usr/bin/cyc")
+
 (setq auto-mode-alist
  (cons '("\\.subl\\'" . cyc-mode) auto-mode-alist))
 (setq auto-mode-alist
@@ -32,36 +34,36 @@
 (progn ; if cyc-mode-map
  (setq cyc-mode-map (make-sparse-keymap))
  (set-keymap-parent cyc-mode-map lisp-mode-map)
- (global-unset-key "\C-cs")
- (global-unset-key "\C-cc")
- (global-unset-key "\C-cm")
- (global-set-key "\C-cv" 'complete-symbol)
- (global-set-key "\C-cde" 'cm-defun)
- (global-set-key "\C-ck" 'cm-push-cap)
- (global-set-key "\C-c\C-g" 'cm-generic-api-fn)
- (global-set-key "\C-c\C-h" 'cm-all-api-fn)
- (global-set-key "\C-csc" 'cm-sk-comment)
- (global-set-key "\C-csq" 'cm-sk-cyc-query)
- (global-set-key "\C-csa" 'cm-sk-cyc-assert)
- (global-set-key "\C-csd" 'cm-sk-cdolist)
- (global-set-key "\C-csf" 'cm-sk-find-or-create-constant)
- (global-set-key "\C-csg" '(cm-cyclify-sexp))
+ (global-unset-key "\C-ccs")
+ (global-unset-key "\C-ccc")
+ (global-unset-key "\C-ccm")
+ (global-set-key "\C-ccv" 'complete-symbol)
+ (global-set-key "\C-ccde" 'cm-defun)
+ (global-set-key "\C-cck" 'cm-push-cap)
+ (global-set-key "\C-ccg" 'cm-generic-api-fn)
+ (global-set-key "\C-cch" 'cm-all-api-fn)
+ (global-set-key "\C-ccsc" 'cm-sk-comment)
+ (global-set-key "\C-ccsq" 'cm-sk-cyc-query)
+ (global-set-key "\C-ccsa" 'cm-sk-cyc-assert)
+ (global-set-key "\C-ccsd" 'cm-sk-cdolist)
+ (global-set-key "\C-ccsf" 'cm-sk-find-or-create-constant)
+ (global-set-key "\C-ccsg" '(cm-cyclify-sexp))
  ;;   (global-set-key "" ')
  ;;   (global-set-key "" ')
  ;;   (global-set-key "" ')
  ;;   (global-set-key "" ')
  (global-set-key "\C-cci" 'cm-constant-complete)
- (global-set-key "\C-ccs" 'cm-cyclify-sexp)
- (global-set-key "\C-cp" 'cm-popup-windows)
- (global-set-key "\C-ci" 'cm-popup-interaction)
- (global-set-key "\C-cco" 'cm-comment)
- (global-set-key "\C-cmg" 'cm-min-genls)
- (global-set-key "\C-cag" 'cm-all-genls)
- (global-set-key "\C-cas" 'cm-all-specs)
- (global-set-key "\C-csp" 'cm-create-plan-spec)
- (global-set-key "\C-cca" 'cm-constant-apropos)
- (global-set-key "\C-cat" 'cm-all-term-assertions)
- (global-set-key "\C-cck" 'cm-set-cm-current-kb))
+ (global-set-key "\C-cccs" 'cm-cyclify-sexp)
+ (global-set-key "\C-ccp" 'cm-popup-windows)
+ (global-set-key "\C-cci" 'cm-popup-interaction)
+ (global-set-key "\C-ccco" 'cm-comment)
+ (global-set-key "\C-ccmg" 'cm-min-genls)
+ (global-set-key "\C-ccag" 'cm-all-genls)
+ (global-set-key "\C-ccas" 'cm-all-specs)
+ (global-set-key "\C-ccsp" 'cm-create-plan-spec)
+ (global-set-key "\C-ccca" 'cm-constant-apropos)
+ (global-set-key "\C-ccat" 'cm-all-term-assertions)
+ (global-set-key "\C-ccck" 'cm-set-cm-current-kb))
 
 ;; here are general bindings to load when using cyc
 
@@ -150,10 +152,9 @@ both existing buffers and buffers that you subsequently create."
   (message "Auto Fill %s in Cyc modes"
    (if enable-mode "enabled" "disabled"))))
 
-
-(load-file "cyc-api.el")
-(load-file "cyc-si.el")
-(load-file "cyc-api-data.el")
+(load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-api.el")
+(load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-si.el")
+(load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-api-data.el")
 
 ; (add-hook 'comint-output-filter-functions 'cm-output-filter)
 
