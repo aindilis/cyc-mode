@@ -1,19 +1,22 @@
 #!/usr/bin/perl -w
 
+use PerlLib::SwissArmyKnife;
+
 use Net::Telnet;
 
-$telnet = new Net::Telnet ( Timeout=>50,
-			    Errmode=>'die',
-			    Prompt => '/200 240490/');
-$telnet->open(Host => '127.0.0.1',
-	      Port => 3601);
+$telnet = Net::Telnet->new
+  (
+   Timeout=>50,
+   Errmode=>'die',
+   Prompt => '/^200 /',
+  );
 
-$com = join (" ", @ARGV);
-$com =~ s/%/\#\$/g;
-$com =~ s/^/(/;
-$com =~ s/$/)/;
+$telnet->open
+  (
+   Host => '127.0.0.1',
+   Port => 3601,
+  );
 
-print "$com\n";
-
-print $telnet->cmd("$com (+ 235235 5255)");
-$telnet->close;
+my @res = $telnet->cmd('(all-instances #$Microtheory #$EverythingPSC)');
+print Dumper({Res => \@res});
+# $telnet->close;

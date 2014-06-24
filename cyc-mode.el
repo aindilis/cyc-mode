@@ -1,11 +1,15 @@
 ;;; cyc-mode.el
 
-;; (setq inferior-lisp-program "/usr/bin/cyc")
+(setq inferior-lisp-program "/var/lib/myfrdcsa/codebases/minor/cyc-mode/cyc1")
+;; (setq inferior-lisp-program "/var/lib/myfrdcsa/codebases/minor/cyc-mode/cyc2")
+;; (inferior-lisp inferior-lisp-program)
 
 (setq auto-mode-alist
  (cons '("\\.subl\\'" . cyc-mode) auto-mode-alist))
 (setq auto-mode-alist
  (cons '("\\.cycl\\'" . cyc-mode) auto-mode-alist))
+
+(defvar cm-current-kb "#$BaseKB")
 
 (defcustom cyc-mode-hook nil
  "Normal hook run when entering Cyc mode and many related modes."
@@ -37,6 +41,7 @@
  (global-unset-key "\C-ccs")
  (global-unset-key "\C-ccc")
  (global-unset-key "\C-ccm")
+ (global-unset-key "\C-ccp")
  (global-set-key "\C-ccv" 'complete-symbol)
  (global-set-key "\C-ccde" 'cm-defun)
  (global-set-key "\C-cck" 'cm-push-cap)
@@ -54,8 +59,8 @@
  ;;   (global-set-key "" ')
  (global-set-key "\C-cci" 'cm-constant-complete)
  (global-set-key "\C-cccs" 'cm-cyclify-sexp)
- (global-set-key "\C-ccp" 'cm-popup-windows)
- (global-set-key "\C-cci" 'cm-popup-interaction)
+ (global-set-key "\C-ccpw" 'cm-popup-windows)
+ (global-set-key "\C-ccpi" 'cm-popup-interaction)
  (global-set-key "\C-ccco" 'cm-comment)
  (global-set-key "\C-ccmg" 'cm-min-genls)
  (global-set-key "\C-ccag" 'cm-all-genls)
@@ -67,7 +72,6 @@
 
 ;; here are general bindings to load when using cyc
 
-
 (define-derived-mode cyc-mode lisp-mode "Cyc"
  ;(defun cyc-mode ()
  "Major mode for editing cyc written for humans to read.
@@ -156,11 +160,14 @@ both existing buffers and buffers that you subsequently create."
 (load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-si.el")
 (load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-api-data.el")
 
-; (add-hook 'comint-output-filter-functions 'cm-output-filter)
+(add-hook 'comint-output-filter-functions 'cm-output-filter)
 
 (defun cm-cyc-query (string)
  (setq cm-output-string nil)
- (comint-send-string (inferior-lisp-proc) string))
+ (comint-send-string (inferior-lisp-proc) string)
+ (while (eq cm-output-string nil)
+  (sit-for 0.001))
+ cm-output-string)
 
 (setq cm-output-string "")
 
@@ -208,13 +215,20 @@ considered."
     (delete-region beg end)
     (insert completion))
    (t
-    (message "Making completion list...")
-    (let ((list (all-completions pattern completions)))
-     (setq list (sort list 'string<))
-     (with-output-to-temp-buffer "*Completions*"
-      (display-completion-list list)))
-    (message "Making completion list...%s" "done")))))
-;
+    ;; (message "Making completion list...")
+    ;; (let ((list (all-completions pattern completions)))
+    ;;  (setq list (sort list 'string<))
+    ;;  (with-output-to-temp-buffer "*Completions*"
+    ;;   (display-completion-list list)))
+    ;; (message "Making completion list...%s" "done")
+    (let* 
+     ((expansion (completing-read "Constant: " 
+		  (all-completions pattern completions) nil nil pattern))
+      (regex (concat pattern "\\(.+\\)")))
+
+     (string-match regex expansion)
+     (insert (match-string 1 expansion)))))))
+
 ;; cm-cyclify-sexp
 (defun cm-cyclify-sexp (&optional arg)
  "Cyclify the expression before cursor."
@@ -315,9 +329,7 @@ considered."
 ;;   (mint-send-string (inferior-lisp-proc)
 ;;		      (concat "(constant-apropos \"" () "\")\n")))
 
-
 ;; Skeleton Functions
-
 
 (defun cm-skel-dwim
  (if (cm-constant-at-point)
@@ -350,14 +362,15 @@ considered."
 
 (defun cm-restore-tags ()
  (interactive)
- (setq tags-file-name "/home/jasayne/frdcsa/source/opencyc-el/cyc-mode/TAGS")
+ (setq tags-file-name "/var/lib/myfrdcsa/codebases/minor/cyc-mode/TAGS")
  (setq tags-table-list nil))
 
 (defun cm-put-string-on-kill-ring (string)
  (setq kill-ring (cons string kill-ring))
  (if (> (length kill-ring) kill-ring-max)
   (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
- (setq kill-ring-yank-pointer kill-ring))
+ (setq kill-ring-yank-pointer kill-ring)
+ (see kill-ring))
 
 (defun cm-constantify () ""
  (interactive)
@@ -393,8 +406,6 @@ considered."
    (up-list))
   (setq string string)))
 
-
-
 ;; here are new things to have keys bound to
 
 ;; (set up all things that can take it from point
@@ -410,9 +421,8 @@ considered."
 (defun cm-all-genls ()
  "Do some cyc-dirty-work."
  (interactive)
- (let ((constant (concat "(all-genls " (cm-constant-at-point) " " cm-current-kb ")\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
-  (display-message-or-buffer constant)))
+ (let ((query (concat "(all-genls " (cm-constant-at-point) " " cm-current-kb ")\n")))
+  (see (cm-cyc-query query))))
 
 (defun cm-all-specs ()
  "Do some cyc-dirty-work."
@@ -436,7 +446,8 @@ considered."
 
 (defun cm-set-cm-current-kb () ""
  (interactive)
- (setq cm-current-kb (cm-constant-at-point)))
+ (setq cm-current-kb (cm-constant-at-point))
+ (see cm-current-kb))
 
 (defun cm-generic-api-fn () ""
  (interactive)

@@ -1,3 +1,6 @@
+
+
+(all-term-assertions #$Hilla)
 (find-or-create-constant "SubLMicrotheoryMt")
 (cyc-assert '(#$isa #$SubLMicrotheoryMt #$Microtheory) #$BaseKB)
 (cyc-assert '(#$genlMt #$SubLMicrotheoryMt #$BaseKB) #$BaseKB)
