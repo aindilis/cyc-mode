@@ -1,6 +1,0 @@
-(defun cm-get-comment-for-constant ()
- "Return the comment for a constant"
- (interactive)
- (let*
-  ((comment (thing-at-point 'symbol)))
-  (uea-send-message (concat "OpenCyc, (comment " constant ")"))))

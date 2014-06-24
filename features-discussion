@@ -7,4 +7,6 @@
 	(create a buffer for communication between cyc and emacs)
 	(put everything in cvs)
 	(before much else, should have the capability to generate
-		full subl commands))
+		full subl commands)
+	(have a state machine system to represent )
+	)
