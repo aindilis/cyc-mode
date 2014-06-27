@@ -1,15 +1,24 @@
 ;;; cyc-mode.el
 
-(setq inferior-lisp-program "/var/lib/myfrdcsa/codebases/minor/cyc-mode/cyc1")
-;; (setq inferior-lisp-program "/var/lib/myfrdcsa/codebases/minor/cyc-mode/cyc2")
-;; (inferior-lisp inferior-lisp-program)
+(let ((dir "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs"))
+ (if (file-exists-p dir)
+  (setq load-path
+   (cons dir load-path))))
+
+(require 'cyc-api)
+(require 'cyc-si)
+(require 'cyc-api-data)
+
+(if t
+ (setq inferior-lisp-program "/var/lib/myfrdcsa/codebases/minor/cyc-mode/cyc1")
+ (setq inferior-lisp-program "/var/lib/myfrdcsa/codebases/minor/cyc-mode/cyc2"))
 
 (setq auto-mode-alist
  (cons '("\\.subl\\'" . cyc-mode) auto-mode-alist))
 (setq auto-mode-alist
  (cons '("\\.cycl\\'" . cyc-mode) auto-mode-alist))
 
-(defvar cm-current-kb "#$BaseKB")
+(defvar cm-current-kb "#$EverythingPSC")
 
 (defcustom cyc-mode-hook nil
  "Normal hook run when entering Cyc mode and many related modes."
@@ -61,14 +70,17 @@
  (global-set-key "\C-cccs" 'cm-cyclify-sexp)
  (global-set-key "\C-ccpw" 'cm-popup-windows)
  (global-set-key "\C-ccpi" 'cm-popup-interaction)
- (global-set-key "\C-ccco" 'cm-comment)
+ (global-set-key "\C-cco" 'cm-comment)
  (global-set-key "\C-ccmg" 'cm-min-genls)
  (global-set-key "\C-ccag" 'cm-all-genls)
  (global-set-key "\C-ccas" 'cm-all-specs)
  (global-set-key "\C-ccsp" 'cm-create-plan-spec)
  (global-set-key "\C-ccca" 'cm-constant-apropos)
  (global-set-key "\C-ccat" 'cm-all-term-assertions)
- (global-set-key "\C-ccck" 'cm-set-cm-current-kb))
+ (global-set-key "\C-ccck" 'cm-set-cm-current-kb)
+ 
+
+ )
 
 ;; here are general bindings to load when using cyc
 
@@ -156,18 +168,18 @@ both existing buffers and buffers that you subsequently create."
   (message "Auto Fill %s in Cyc modes"
    (if enable-mode "enabled" "disabled"))))
 
-(load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-api.el")
-(load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-si.el")
-(load-file "/var/lib/myfrdcsa/codebases/minor/cyc-mode/frdcsa/emacs/cyc-api-data.el")
-
 (add-hook 'comint-output-filter-functions 'cm-output-filter)
 
 (defun cm-cyc-query (string)
- (setq cm-output-string nil)
- (comint-send-string (inferior-lisp-proc) string)
- (while (eq cm-output-string nil)
-  (sit-for 0.001))
- cm-output-string)
+ (let ((window-config (current-window-configuration)))
+  (save-excursion
+   (setq cm-output-string nil)
+   (comint-send-string (cyc-mode-inferior-lisp-proc) string)
+   (while (eq cm-output-string nil)
+    (sit-for 0.001))
+   (sit-for 0.005)
+   (set-window-configuration window-config)
+   cm-output-string)))
 
 (setq cm-output-string "")
 
@@ -196,38 +208,42 @@ considered."
 		       (char-equal (following-char) ?\#))
 		(forward-char 1))
 	       (point))))
-	(pattern (buffer-substring-no-properties beg end))
-	(cm-cyc-output
-	 (cm-cyc-query
-	  (concat "(constant-complete " "\"" pattern "\")\n")))
-	(completions
-	 (cm-convert-string-to-alist-of-strings
-	  (progn
-	   (string-match "(\\([^\)]*\\))" ; get this from Cyc and format it into an alist
-	    cm-cyc-output)
-	   (match-string 1 cm-cyc-output))))
-	(completion (try-completion pattern completions)))
-  (cond ((eq completion t))
-   ((null completion)
-    (message "Can't find completion for \"%s\"" pattern)
-    (ding))
-   ((not (string= pattern completion))
-    (delete-region beg end)
-    (insert completion))
-   (t
-    ;; (message "Making completion list...")
-    ;; (let ((list (all-completions pattern completions)))
-    ;;  (setq list (sort list 'string<))
-    ;;  (with-output-to-temp-buffer "*Completions*"
-    ;;   (display-completion-list list)))
-    ;; (message "Making completion list...%s" "done")
-    (let* 
-     ((expansion (completing-read "Constant: " 
-		  (all-completions pattern completions) nil nil pattern))
-      (regex (concat pattern "\\(.+\\)")))
+	(pattern
+	 (buffer-substring-no-properties beg end)))
+  (if (non-nil (string-match "\\([^\\s]\\)" pattern))
+   (let*
+    ((cm-cyc-output
+      (cm-cyc-query
+       (concat "(constant-complete " "\"" pattern "\")\n")))
+     (completions
+      (cm-convert-string-to-alist-of-strings
+       (progn
+	(string-match "(\\([^\)]*\\))" ; get this from Cyc and format it into an alist
+	 cm-cyc-output)
+	(match-string 1 cm-cyc-output))))
+     (completion (try-completion pattern completions)))
+    (cond ((eq completion t))
+     ((null completion)
+      (message "Can't find completion for \"%s\"" pattern)
+      (ding))
+     ((not (string= pattern completion))
+      (delete-region beg end)
+      (insert completion))
+     (t
+      ;; (message "Making completion list...")
+      ;; (let ((list (all-completions pattern completions)))
+      ;;  (setq list (sort list 'string<))
+      ;;  (with-output-to-temp-buffer "*Completions*"
+      ;;   (display-completion-list list)))
+      ;; (message "Making completion list...%s" "done")
+      (let* 
+       ((expansion (completing-read "Constant: " 
+		    (all-completions pattern completions) nil nil pattern))
+	(regex (concat pattern "\\(.+\\)")))
 
-     (string-match regex expansion)
-     (insert (match-string 1 expansion)))))))
+       (string-match regex expansion)
+       (insert (match-string 1 expansion))))))
+   (error "Nothing to complete."))))
 
 ;; cm-cyclify-sexp
 (defun cm-cyclify-sexp (&optional arg)
@@ -303,15 +319,46 @@ considered."
 (defun cm-comment ()
  "Do some cyc-dirty-work."
  (interactive)
- (let ((constant (concat "(comment " (cm-constant-at-point) " " cm-current-kb ")\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
-  (display-message-or-buffer constant)))
+ (let*
+  ((cm-cyc-output
+    (cm-cyc-query
+     (concat "(comment " (cm-constant-at-point) " " cm-current-kb ")\n"))))
+  (message cm-cyc-output)))
 
 (defun cm-constant-apropos ()
  (interactive)
- (let ((constant (concat "(constant-apropos \"" (cm-no-properties) "\")\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
-  (display-message-or-buffer constant)))
+ (let*
+  ((pattern (cm-no-properties))
+   (cm-cyc-output
+    (cm-cyc-query
+     (concat "(constant-apropos " "\"" pattern "\")\n")))
+   (completions
+    (cm-convert-string-to-alist-of-strings
+     (progn
+      (string-match "(\\([^\)]*\\))" ; get this from Cyc and format it into an alist
+       cm-cyc-output)
+      (match-string 1 cm-cyc-output))))
+   (completion (try-completion pattern completions)))
+  (cond ((eq completion t))
+   ((null completion)
+    (message "Can't find completion for \"%s\"" pattern)
+    (ding))
+   ((not (string= pattern completion))
+    (delete-region beg end)
+    (insert completion))
+   (t
+    ;; (message "Making completion list...")
+    ;; (let ((list (all-completions pattern completions)))
+    ;;  (setq list (sort list 'string<))
+    ;;  (with-output-to-temp-buffer "*Completions*"
+    ;;   (display-completion-list list)))
+    ;; (message "Making completion list...%s" "done")
+    (let* 
+     ((expansion (completing-read "Constant: " completions))
+      (regex (concat pattern "\\(.+\\)")))
+
+     (string-match regex expansion)
+     (insert (match-string 1 expansion)))))))
 
 (defun cm-all-term-assertions ()
  (interactive)
@@ -326,7 +373,7 @@ considered."
 ;; general input skeletons
 
 ;;   (interactive "CConstant apropos: \np")
-;;   (mint-send-string (inferior-lisp-proc)
+;;   (mint-send-string (cyc-mode-inferior-lisp-proc)
 ;;		      (concat "(constant-apropos \"" () "\")\n")))
 
 ;; Skeleton Functions
@@ -411,25 +458,40 @@ considered."
 ;; (set up all things that can take it from point
 ;;     (automatically assign key bindings to them))
 
+;; COMMON QUERIES
+
+;; (let ((constant ))
+;;   (comint-send-string (cyc-mode-inferior-lisp-proc) constant)
+;;   (display-message-or-buffer constant)))
+
 (defun cm-min-genls ()
  "Do some cyc-dirty-work."
  (interactive)
- (let ((constant (concat "(min-genls " (cm-constant-at-point) " " cm-current-kb ")\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
-  (display-message-or-buffer constant)))
+ (cm-see-query-result (concat "(min-genls " (cm-constant-at-point) " " cm-current-kb ")\n")))
 
 (defun cm-all-genls ()
  "Do some cyc-dirty-work."
  (interactive)
- (let ((query (concat "(all-genls " (cm-constant-at-point) " " cm-current-kb ")\n")))
-  (see (cm-cyc-query query))))
+ (cm-see-query-result (concat "(all-genls " (cm-constant-at-point) " " cm-current-kb ")\n")))
+
+(defun cm-comment ()
+ "Do some cyc-dirty-work."
+ (interactive)
+ (cm-see-query-result (concat "(comment " (cm-constant-at-point) " " cm-current-kb ")\n")))
 
 (defun cm-all-specs ()
  "Do some cyc-dirty-work."
  (interactive)
- (let ((constant (concat "(all-specs " (cm-constant-at-point) " " cm-current-kb ")\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
-  (display-message-or-buffer constant)))
+ (cm-see-query-result (concat "(all-specs " (cm-constant-at-point) " " cm-current-kb ")\n")))
+
+(defun cm-see-query-result (query)
+ "Do some cyc-dirty-work."
+ (interactive)
+ (let*
+  ((cm-cyc-output
+    (cm-cyc-query
+     query)))
+  (message cm-cyc-output)))
 
 (defun cm-constant-to-string (string) ""
  (string-match "#$\(.*\)" string)
@@ -441,7 +503,7 @@ considered."
  (let ((constant (concat "(cdolist (*new* (list (find-or-create-constant \"" name "\")))
 	 (cyc-assert (list #$isa *new* #$plan) " cm-current-kb ")
 	 (cyc-assert (list #$genls *new* " (cm-constant-at-point) " ) " cm-current-kb "))\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
+  (comint-send-string (cyc-mode-inferior-lisp-proc) constant)
   (display-message-or-buffer constant)))
 
 (defun cm-set-cm-current-kb () ""
@@ -458,7 +520,7 @@ considered."
  (let ((constant (concat "(" (completing-read "Cyc API function: " cm-api-type-1)
 		  " " (or (cm-constant-at-point)
 		       (read-from-minibuffer "Cyc term: ")) " " cm-current-kb ")\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
+  (comint-send-string (cyc-mode-inferior-lisp-proc) constant)
   (display-message-or-buffer constant)))
 
 (defun cm-all-api-fn ()
@@ -472,7 +534,7 @@ considered."
 	(constant (concat "(" (completing-read "Cyc API function: " cm-temp)
 		   " " (or (cm-constant-at-point)
 			(read-from-minibuffer "Cyc term: ")) " " cm-current-kb ")\n")))
-  (comint-send-string (inferior-lisp-proc) constant)
+  (comint-send-string (cyc-mode-inferior-lisp-proc) constant)
   (display-message-or-buffer constant)))
 
 (defun cm-push-cap () ""
@@ -510,3 +572,16 @@ considered."
 
 (defun cm-format-output-start ()
  (call-process "/usr/bin/perl" nil "*formatted*" t (concat cyc-mode-home "/format.pl")))
+
+(defun cyc-mode-inferior-lisp-proc ()
+ ""
+ (condition-case nil
+  (inferior-lisp-proc)
+  ((debug error) 
+   (progn
+    ;; (si-init)
+    (inferior-lisp inferior-lisp-program)
+    (inferior-lisp-proc)))))
+
+(provide 'cyc-mode)
+

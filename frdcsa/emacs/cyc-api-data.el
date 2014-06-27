@@ -448,3 +448,5 @@
 	("constant-external-id" ("constant-p"))
 	("constant-p" ("<object>"))
 	))
+
+(provide 'cyc-api-data)

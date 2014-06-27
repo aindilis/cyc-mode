@@ -132,3 +132,5 @@
      )
     (read-string (concat token " : "))
     ))
+
+(provide 'cyc-si)

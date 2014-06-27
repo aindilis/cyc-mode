@@ -4263,3 +4263,4 @@ Single value returned satisfies BOOLEANP."
 ;; (defun zerop ()
 ;;   "Subl primitive function.")
 
+(provide 'cyc-api)
